@@ -1,0 +1,78 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<root>
+<url><![CDATA[http://icy.bioimageanalysis.org/repository/getXMLPluginFile.php?pluginId=179&beta=0]]></url><name>Scale Bar</name><version>2.0.0.0</version><required_kernel_version>1.3.6.0</required_kernel_version><kernel_ver>1.3.6.0</kernel_ver><jar_url><![CDATA[http://icy.bioimageanalysis.org/repository/getJarFile.php?pluginId=179&beta=0]]></jar_url><icon_url><![CDATA[http://bioimageanalysis.org/icy/image.php?idAttach=1229]]></icon_url><image_url><![CDATA[http://bioimageanalysis.org/icy/image.php?idAttach=2020]]></image_url><description><![CDATA[Displays a scale bar overlay on the sequence. Be advised, this plugin needs correct Metadata on the sequence to be effective or it will display wrong values.]]></description><classname><![CDATA[plugins.tprovoost.scale.Scale]]></classname><author><![CDATA[tprovoost - Thomas Provoost]]></author><changelog><![CDATA[-
+Version 2.0.0.0
+Date 2013-07-03 12:15:38
+
+* Bottom left now. This will make it avoid being invisible because of the zoom factor is displayed at the same time
+* the scale bar now fully works
+
+-
+Version 1.6.0.0
+Date 2013-07-03 12:02:48
+
+* Uses orders of magnitude instead of precise values.
+* size of scale bar never changes now: will always be : size of the canvas / 8.
+
+-
+Version 1.5.0.0
+Date 2013-06-26 16:52:26
+
+* Now only updates text while zooming, and change the size and value after the zoom
+
+-
+Version 1.4.0.0
+Date 2013-06-26 11:20:13
+
+* fixed bar location issue
+
+-
+Version 1.3.1.0
+Date 2013-06-17 15:18:23
+
+* removed debug information
+
+-
+Version 1.3.0.0
+Date 2013-06-17 15:17:46
+
+* now scales with images zoom
+
+-
+Version 1.2.0.0
+Date 2013-06-17 14:15:50
+
+* removed white rectangle
+* now shadow on text
+
+-
+Version 1.1.0.0
+Date 2013-01-11 16:30:30
+
+Updated to 1.3.0.0
+
+-
+Version 1.0.0.2
+Date 2012-10-22 17:10:43
+
+* corrected 3D issue.
+
+-
+Version 1.0.0.1
+Date 2012-07-03 09:23:11
+
+Corrected issue with compilation.
+
+-
+Version 1.0.0.0
+Date 2012-07-02 21:17:10
+
+Updated to Icy last version.
+
+-
+Version 0.0.1.0
+Date 2012-06-20 14:33:49
+
+
+
+]]></changelog><web><![CDATA[http://icy.bioimageanalysis.org/plugin/Scale_Bar]]></web><dependencies></dependencies></root>
