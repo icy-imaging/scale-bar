@@ -7,8 +7,10 @@ import java.awt.Graphics2D;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.geom.Line2D;
+import java.awt.geom.Rectangle2D;
 
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -24,6 +26,7 @@ import icy.sequence.Sequence;
 import icy.system.thread.ThreadUtil;
 import icy.util.ColorUtil;
 import icy.util.GraphicsUtil;
+import icy.util.ShapeUtil;
 import plugins.adufour.vars.gui.model.IntegerRangeModel;
 import plugins.adufour.vars.gui.swing.SwingVarEditor;
 import plugins.adufour.vars.lang.Var;
@@ -40,9 +43,8 @@ import plugins.kernel.canvas.VtkCanvas;
  */
 public class ScaleBarOverlay extends Overlay
 {
-    private static final double[] scaleRoundedFactors = {1.0D, 2.0D, 3.0D, 4.0D, 5.0D, 6.0D, 7.0D, 8.0D, 9.0D, 10.0D,
-            20.0D, 30.0D, 40.0D, 50.0D, 60.0D, 70.0D, 80.0D, 90.0D, 100.0D, 200.0D, 300.0D, 400.0D, 500.0D, 600.0D,
-            700.0D, 800.0D, 900.0D};
+    private static final double[] scaleRoundedFactors = {1.0D, 2.0D, 3.0D, 4.0D, 5.0D, 6.0D, 7.0D, 8.0D, 9.0D, 10.0D, 20.0D, 30.0D, 40.0D, 50.0D, 60.0D, 70.0D,
+        80.0D, 90.0D, 100.0D, 200.0D, 300.0D, 400.0D, 500.0D, 600.0D, 700.0D, 800.0D, 900.0D};
 
     private final XMLPreferences preferences;
     private final Line2D.Double line;
@@ -52,6 +54,7 @@ public class ScaleBarOverlay extends Overlay
     // settings
     private final VarEnum<ScaleBarLocation> location;
     private final VarColor color;
+    private final VarBoolean opaque;
     private final VarBoolean showText;
     private final VarInteger size;
     private final VarInteger thickness;
@@ -66,8 +69,7 @@ public class ScaleBarOverlay extends Overlay
         line = new Line2D.Double();
 
         // scale bar location
-        location = new VarEnum<ScaleBarLocation>("Location",
-                ScaleBarLocation.valueOf(preferences.get("location", ScaleBarLocation.VIEWER_BOTTOM_LEFT.name())))
+        location = new VarEnum<ScaleBarLocation>("Location", ScaleBarLocation.valueOf(preferences.get("location", ScaleBarLocation.VIEWER_BOTTOM_LEFT.name())))
         {
             @Override
             public void setValue(ScaleBarLocation newValue)
@@ -95,6 +97,23 @@ public class ScaleBarOverlay extends Overlay
                 super.setValue(newValue);
 
                 preferences.putInt("color", newValue.getRGB());
+
+                painterChanged();
+            }
+        };
+
+        // Opaque background
+        opaque = new VarBoolean("Opaque", preferences.getBoolean("opaque", false))
+        {
+            @Override
+            public void setValue(Boolean newValue)
+            {
+                if (getValue().equals(newValue))
+                    return;
+
+                super.setValue(newValue);
+
+                preferences.putBoolean("opaque", newValue);
 
                 painterChanged();
             }
@@ -152,8 +171,7 @@ public class ScaleBarOverlay extends Overlay
         };
 
         // Scale bar unit (default: microns)
-        unit = new VarEnum<ScaleBarUnit>("Unit",
-                ScaleBarUnit.valueOf(preferences.get("unit", ScaleBarUnit.MICRO.name())))
+        unit = new VarEnum<ScaleBarUnit>("Unit", ScaleBarUnit.valueOf(preferences.get("unit", ScaleBarUnit.MICRO.name())))
         {
             @Override
             public void setValue(ScaleBarUnit newValue)
@@ -214,7 +232,7 @@ public class ScaleBarOverlay extends Overlay
     {
         optionPanel = new JPanel(new GridBagLayout());
 
-        for (Var<?> variable : new Var<?>[] {location, color, autoSize, size, thickness, showText})
+        for (Var<?> variable : new Var<?>[] {location, color, opaque, autoSize, size, thickness, showText})
         {
             GridBagConstraints gbc = new GridBagConstraints();
 
@@ -251,13 +269,6 @@ public class ScaleBarOverlay extends Overlay
         if (canvas instanceof VtkCanvas && !init)
         {
             init = true;
-
-            // VtkCanvas vtk = (VtkCanvas) canvas;
-
-            // vtkScalarBarActor sb = new vtkScalarBarActor();
-
-            // vtk.getRenderer().AddActor(sb);
-
             return;
         }
         else if (g == null || !(canvas instanceof IcyCanvas2D))
@@ -286,106 +297,124 @@ public class ScaleBarOverlay extends Overlay
         }
 
         String text = size.getValue() + " " + unit.getValue();
-
-        double length = UnitUtil.getValueInUnit(size.getValue(), unit.getValue().asUnitPrefix(), UnitPrefix.MICRO)
-                / sequence.getPixelSizeX();
-
-        int textYfactor = 0;
+        double length = UnitUtil.getValueInUnit(size.getValue(), unit.getValue().asUnitPrefix(), UnitPrefix.MICRO) / sequence.getPixelSizeX();
         float finalThickness = this.thickness.getValue().floatValue();
+        double borderDist = 20;
+        double sizeX, sizeY;
+
+        // image relative
+        if (location.getValue().isRelativeToImage())
+        {
+            // adjust thickness
+            finalThickness = (float) c2.canvasToImageLogDeltaX((int) finalThickness);
+            borderDist = canvas.canvasToImageDeltaX((int) borderDist);
+            sizeX = canvas.getImageSizeX();
+            sizeY = canvas.getImageSizeY();
+        }
+        // viewer relative
+        else
+        {
+            // adjust length
+            length = canvas.imageToCanvasDeltaX(length);
+            sizeX = canvas.getCanvasSizeX();
+            sizeY = canvas.getCanvasSizeY();
+            // need to reserve transform
+            g2.transform(c2.getInverseTransform());
+        }
+
+        // prepare rendering
+        g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+        g2.setStroke(new BasicStroke(finalThickness, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER));
+
+        Rectangle2D textBnds = new Rectangle2D.Double();
+
+        // draw text ? prepare font and compute text bounds
+        if (showText.getValue())
+        {
+            // set graphics font
+            g2.setFont(g2.getFont().deriveFont(Font.BOLD, (finalThickness * 3)));
+            // get text bounds
+            textBnds = GraphicsUtil.getStringBounds(g2, text);
+        }
 
         switch (location.getValue())
         {
             case VIEWER_BOTTOM_LEFT:
-                g2.transform(c2.getInverseTransform());
-                line.x1 = canvas.getCanvasSizeX() * 0.05;
-                line.x2 = line.x1 + length * c2.getScaleX();
-                line.y1 = line.y2 = canvas.getCanvasSizeY() * 0.95;
-                textYfactor = -2;
-                break;
-
             case IMAGE_BOTTOM_LEFT:
-                line.x1 = sequence.getSizeX() * 0.05;
+                line.x1 = borderDist;
                 line.x2 = line.x1 + length;
-                line.y1 = line.y2 = sequence.getSizeY() * 0.95;
-                textYfactor = -2;
-                finalThickness = (float) c2.canvasToImageLogDeltaX((int) finalThickness);
+                line.y1 = sizeY - (textBnds.getHeight() + (borderDist / 4));
                 break;
 
             case VIEWER_BOTTOM_RIGHT:
-                g2.transform(c2.getInverseTransform());
-                line.x1 = canvas.getCanvasSizeX() * 0.95;
-                line.x2 = line.x1 - length * c2.getScaleX();
-                line.y1 = line.y2 = canvas.getCanvasSizeY() * 0.95;
-                textYfactor = -2;
-                break;
-
             case IMAGE_BOTTOM_RIGHT:
-                line.x1 = sequence.getSizeX() * 0.95;
+                line.x1 = sizeX - borderDist;
                 line.x2 = line.x1 - length;
-                line.y1 = line.y2 = sequence.getSizeY() * 0.95;
-                textYfactor = -2;
-                finalThickness = (float) c2.canvasToImageLogDeltaX((int) finalThickness);
+                line.y1 = sizeY - (textBnds.getHeight() + (borderDist / 4));
                 break;
 
             case VIEWER_TOP_LEFT:
-                g2.transform(c2.getInverseTransform());
-                line.x1 = canvas.getCanvasSizeX() * 0.05;
-                line.x2 = line.x1 + length * c2.getScaleX();
-                line.y1 = line.y2 = canvas.getCanvasSizeY() * 0.05;
-                textYfactor = 4;
-                break;
-
             case IMAGE_TOP_LEFT:
-                line.x1 = sequence.getSizeX() * 0.05;
+                line.x1 = borderDist;
                 line.x2 = line.x1 + length;
-                line.y1 = line.y2 = sequence.getSizeY() * 0.05;
-                textYfactor = 4;
-                finalThickness = (float) c2.canvasToImageLogDeltaX((int) finalThickness);
+                line.y1 = borderDist;
                 break;
 
             case VIEWER_TOP_RIGHT:
-                g2.transform(c2.getInverseTransform());
-                line.x1 = canvas.getCanvasSizeX() * 0.95;
-                line.x2 = line.x1 - length * c2.getScaleX();
-                line.y1 = line.y2 = canvas.getCanvasSizeY() * 0.05;
-                textYfactor = 4;
-                break;
-
             case IMAGE_TOP_RIGHT:
-                line.x1 = sequence.getSizeX() * 0.95;
+                line.x1 = sizeX - borderDist;
                 line.x2 = line.x1 - length;
-                line.y1 = line.y2 = sequence.getSizeY() * 0.05;
-                textYfactor = 4;
-                finalThickness = (float) c2.canvasToImageLogDeltaX((int) finalThickness);
+                line.y1 = borderDist;
                 break;
         }
 
-        // draw scale bar line
-        g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-        g2.setStroke(new BasicStroke(finalThickness, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER));
-        if (ColorUtil.getLuminance(color.getValue()) > 128)
-            g2.setColor(Color.darkGray);
+        line.y2 = line.y1;
+
+        // opaque background ?
+        if (opaque.getValue().booleanValue())
+        {
+            if (ColorUtil.getLuminance(color.getValue()) > 128)
+                g2.setColor(Color.black);
+            else
+                g2.setColor(Color.white);
+
+            // base bounds
+            final Rectangle rect = line.getBounds();
+            // give margins
+            ShapeUtil.enlarge(rect, 8, 8, true);
+            // draw text ? enlarge using text bounds
+            if (showText.getValue().booleanValue())
+                rect.height += textBnds.getHeight();
+
+            g2.fill(rect);
+        }
         else
-            g2.setColor(Color.lightGray);
-        line.x1 += 1;
-        line.y1 += 1;
-        line.x2 += 1;
-        line.y2 += 1;
-        g2.draw(line);
-        line.x1 -= 1;
-        line.y1 -= 1;
-        line.x2 -= 1;
-        line.y2 -= 1;
+        {
+            // transparent background --> just draw a light shadow
+            if (ColorUtil.getLuminance(color.getValue()) > 128)
+                g2.setColor(Color.darkGray);
+            else
+                g2.setColor(Color.lightGray);
+
+            line.x1 += 1;
+            line.y1 += 1;
+            line.x2 += 1;
+            line.y2 += 1;
+            g2.draw(line);
+            line.x1 -= 1;
+            line.y1 -= 1;
+            line.x2 -= 1;
+            line.y2 -= 1;
+        }
+
+        // draw scale bar line
         g2.setColor(color.getValue());
         g2.draw(line);
 
         // draw text
-        if (showText.getValue())
-        {
-            g2.setFont(g2.getFont().deriveFont(Font.BOLD, finalThickness * 3));
-            GraphicsUtil.drawHCenteredString(g2, text, (int) line.getBounds().getCenterX(),
-                    (int) (line.getBounds().getCenterY() + (finalThickness * textYfactor * 3)), true);
-        }
+        if (showText.getValue().booleanValue())
+            GraphicsUtil.drawHCenteredString(g2, text, (int) line.getBounds().getCenterX(), (int) (line.getBounds().getCenterY() + 4),
+                    !opaque.getValue().booleanValue());
 
         g2.dispose();
     }
@@ -410,6 +439,14 @@ public class ScaleBarOverlay extends Overlay
     public Color getColor()
     {
         return color.getValue();
+    }
+
+    /**
+     * @return the opaque property of the scale bar
+     */
+    public boolean getOpaque()
+    {
+        return opaque.getValue().booleanValue();
     }
 
     /**
@@ -455,6 +492,16 @@ public class ScaleBarOverlay extends Overlay
     public void setColor(Color color)
     {
         this.color.setValue(color);
+    }
+
+    /**
+     * Sets whether the scale bar should have an opaque background or not
+     * 
+     * @param opaque
+     */
+    public void setOpaque(boolean opaque)
+    {
+        this.opaque.setValue(opaque);
     }
 
     /**
