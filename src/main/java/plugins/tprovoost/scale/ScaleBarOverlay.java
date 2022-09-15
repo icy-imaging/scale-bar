@@ -7,7 +7,6 @@ import java.awt.Graphics2D;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
-import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.geom.Line2D;
 import java.awt.geom.Rectangle2D;
@@ -21,6 +20,7 @@ import icy.math.MathUtil;
 import icy.math.UnitUtil;
 import icy.math.UnitUtil.UnitPrefix;
 import icy.painter.Overlay;
+import icy.preferences.GeneralPreferences;
 import icy.preferences.XMLPreferences;
 import icy.sequence.Sequence;
 import icy.system.thread.ThreadUtil;
@@ -274,12 +274,12 @@ public class ScaleBarOverlay extends Overlay
         else if (g == null || !(canvas instanceof IcyCanvas2D))
             return;
 
-        final IcyCanvas2D c2 = (IcyCanvas2D) canvas;
         final Graphics2D g2 = (Graphics2D) g.create();
+        final IcyCanvas2D canvas2d = (IcyCanvas2D) canvas;
 
         if (autoSize.getValue())
         {
-            int sizeW = Math.min(c2.getCanvasSizeX() / 4, Math.max(c2.getCanvasSizeX() / 7, 120));
+            int sizeW = Math.min(canvas.getCanvasSizeX() / 4, Math.max(canvas.getCanvasSizeX() / 7, 120));
             // sequence.getSizeX() / 7;
 
             // don't draw a scale bar larger than the image itself
@@ -298,29 +298,31 @@ public class ScaleBarOverlay extends Overlay
 
         String text = size.getValue() + " " + unit.getValue();
         double length = UnitUtil.getValueInUnit(size.getValue(), unit.getValue().asUnitPrefix(), UnitPrefix.MICRO) / sequence.getPixelSizeX();
-        float finalThickness = this.thickness.getValue().floatValue();
-        double borderDist = 20;
-        double sizeX, sizeY;
+        final double unit;
+        final double sizeX, sizeY;
 
         // image relative
         if (location.getValue().isRelativeToImage())
         {
-            // adjust thickness
-            finalThickness = (float) c2.canvasToImageLogDeltaX((int) finalThickness);
-            borderDist = canvas.canvasToImageDeltaX((int) borderDist);
+            unit = canvas.canvasToImageDeltaX(1);
             sizeX = canvas.getImageSizeX();
             sizeY = canvas.getImageSizeY();
         }
         // viewer relative
         else
         {
-            // adjust length
-            length = canvas.imageToCanvasDeltaX(length);
+            unit = 1d;
             sizeX = canvas.getCanvasSizeX();
             sizeY = canvas.getCanvasSizeY();
+            // adjust length
+            length = canvas.imageToCanvasDeltaX(length);
             // need to reserve transform
-            g2.transform(c2.getInverseTransform());
+            g2.transform(canvas2d.getInverseTransform());
         }
+
+        final float finalThickness = (float) (thickness.getValue().doubleValue() * unit);
+        final float fontSize = (float) ((GeneralPreferences.getGuiFontSize() + 2) * unit);
+        final double borderDist = 20d * unit;
 
         // prepare rendering
         g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
@@ -332,7 +334,7 @@ public class ScaleBarOverlay extends Overlay
         if (showText.getValue())
         {
             // set graphics font
-            g2.setFont(g2.getFont().deriveFont(Font.BOLD, (finalThickness * 3)));
+            g2.setFont(g2.getFont().deriveFont(Font.BOLD, fontSize));
             // get text bounds
             textBnds = GraphicsUtil.getStringBounds(g2, text);
         }
@@ -343,28 +345,28 @@ public class ScaleBarOverlay extends Overlay
             case IMAGE_BOTTOM_LEFT:
                 line.x1 = borderDist;
                 line.x2 = line.x1 + length;
-                line.y1 = sizeY - (textBnds.getHeight() + (borderDist / 4));
+                line.y1 = sizeY - (textBnds.getHeight() + (borderDist / 2d));
                 break;
 
             case VIEWER_BOTTOM_RIGHT:
             case IMAGE_BOTTOM_RIGHT:
                 line.x1 = sizeX - borderDist;
                 line.x2 = line.x1 - length;
-                line.y1 = sizeY - (textBnds.getHeight() + (borderDist / 4));
+                line.y1 = sizeY - (textBnds.getHeight() + (borderDist / 2d));
                 break;
 
             case VIEWER_TOP_LEFT:
             case IMAGE_TOP_LEFT:
                 line.x1 = borderDist;
                 line.x2 = line.x1 + length;
-                line.y1 = borderDist;
+                line.y1 = borderDist / 2d;
                 break;
 
             case VIEWER_TOP_RIGHT:
             case IMAGE_TOP_RIGHT:
                 line.x1 = sizeX - borderDist;
                 line.x2 = line.x1 - length;
-                line.y1 = borderDist;
+                line.y1 = borderDist / 2d;
                 break;
         }
 
@@ -379,12 +381,12 @@ public class ScaleBarOverlay extends Overlay
                 g2.setColor(Color.white);
 
             // base bounds
-            final Rectangle rect = line.getBounds();
+            final Rectangle2D rect = line.getBounds2D();
             // give margins
-            ShapeUtil.enlarge(rect, 8, 8, true);
+            ShapeUtil.enlarge(rect, 8d * unit, 8d * unit, true);
             // draw text ? enlarge using text bounds
             if (showText.getValue().booleanValue())
-                rect.height += textBnds.getHeight();
+                rect.setRect(rect.getX(), rect.getY(), rect.getWidth(), rect.getHeight() + textBnds.getHeight());
 
             g2.fill(rect);
         }
@@ -396,15 +398,15 @@ public class ScaleBarOverlay extends Overlay
             else
                 g2.setColor(Color.lightGray);
 
-            line.x1 += 1;
-            line.y1 += 1;
-            line.x2 += 1;
-            line.y2 += 1;
+            line.x1 += unit;
+            line.y1 += unit;
+            line.x2 += unit;
+            line.y2 += unit;
             g2.draw(line);
-            line.x1 -= 1;
-            line.y1 -= 1;
-            line.x2 -= 1;
-            line.y2 -= 1;
+            line.x1 -= unit;
+            line.y1 -= unit;
+            line.x2 -= unit;
+            line.y2 -= unit;
         }
 
         // draw scale bar line
@@ -413,8 +415,29 @@ public class ScaleBarOverlay extends Overlay
 
         // draw text
         if (showText.getValue().booleanValue())
-            GraphicsUtil.drawHCenteredString(g2, text, (int) line.getBounds().getCenterX(), (int) (line.getBounds().getCenterY() + 4),
-                    !opaque.getValue().booleanValue());
+        {
+            float baseX = (float) line.getBounds().getCenterX();
+            float baseY = (float) (line.getBounds().getCenterY() + (unit * 4d));
+            final float x = (float) (baseX - (textBnds.getWidth() / 2d));
+            final float y = (float) (baseY - textBnds.getY());
+
+            // need to draw text shadow first
+            if (!opaque.getValue().booleanValue())
+            {
+                if (ColorUtil.getLuminance(color.getValue()) > 128)
+                    g2.setColor(Color.darkGray);
+                else
+                    g2.setColor(Color.lightGray);
+
+                // draw text in shadow
+                g2.drawString(text, (float) (x + unit), (float) (y + unit));
+                // restore color
+                g2.setColor(color.getValue());
+            }
+
+            // draw text
+            g2.drawString(text, x, y);
+        }
 
         g2.dispose();
     }
