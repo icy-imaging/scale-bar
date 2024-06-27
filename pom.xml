@@ -6,21 +6,19 @@
 	<parent>
 		<groupId>org.bioimageanalysis.icy</groupId>
 		<artifactId>pom-icy</artifactId>
-		<version>2.1.2</version>
+		<version>3.0.0-a.1</version>
 	</parent>
 
 	<!-- Project Information -->
 	<artifactId>scale-bar</artifactId>
-	<version>3.3.1</version>
-
-	<packaging>jar</packaging>
+	<version>4.0.0-a.1</version>
 
 	<name>Scale Bar</name>
 	<description>
         Displays a scale bar overlay on the sequence.
         Warning: this plugin needs correct sequence metadata to be effective. Otherwise it will display wrong values.
     </description>
-	<url>http://icy.bioimageanalysis.org/plugin/scale-bar/</url>
+	<url>https://icy.bioimageanalysis.org/plugin/scale-bar/</url>
 	<inceptionYear>2020</inceptionYear>
 
 	<organization>
@@ -54,20 +52,8 @@
 		</developer>
 	</developers>
 
-	<!-- Project properties -->
-	<properties></properties>
-
-	<!-- Project build configuration -->
-	<build></build>
-
 	<!-- List of project's dependencies -->
 	<dependencies>
-		<!-- The core of Icy -->
-		<dependency>
-			<groupId>org.bioimageanalysis.icy</groupId>
-			<artifactId>icy-kernel</artifactId>
-		</dependency>
-
 		<!-- The EzPlug library, simplifies writing UI for Icy plugins. -->
 		<dependency>
 			<groupId>org.bioimageanalysis.icy</groupId>
@@ -79,8 +65,7 @@
 	<repositories>
 		<repository>
 			<id>icy</id>
-			<name>Icy's Nexus</name>
-			<url>https://icy-nexus.pasteur.fr/repository/Icy/</url>
+			<url>https://nexus-icy.pasteur.cloud/repository/icy/</url>
 		</repository>
 	</repositories>
 </project>
