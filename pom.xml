@@ -6,12 +6,12 @@
 	<parent>
 		<groupId>org.bioimageanalysis.icy</groupId>
 		<artifactId>pom-icy</artifactId>
-		<version>3.0.0-a.1</version>
+		<version>3.0.0-a.4</version>
 	</parent>
 
 	<!-- Project Information -->
 	<artifactId>scale-bar</artifactId>
-	<version>4.0.0-a.1</version>
+	<version>4.0.0-a.2</version>
 
 	<name>Scale Bar</name>
 	<description>
@@ -60,12 +60,4 @@
 			<artifactId>ezplug</artifactId>
 		</dependency>
 	</dependencies>
-
-	<!-- Icy Maven repository (to find parent POM) -->
-	<repositories>
-		<repository>
-			<id>icy</id>
-			<url>https://nexus-icy.pasteur.cloud/repository/icy/</url>
-		</repository>
-	</repositories>
 </project>
