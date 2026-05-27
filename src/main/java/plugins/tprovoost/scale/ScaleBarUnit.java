@@ -18,8 +18,8 @@
 
 package plugins.tprovoost.scale;
 
-import org.bioimageanalysis.icy.common.math.UnitUtil;
-import org.bioimageanalysis.icy.common.math.UnitUtil.UnitPrefix;
+import fr.icy.common.math.UnitUtil;
+import fr.icy.common.math.UnitUtil.UnitPrefix;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 

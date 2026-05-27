@@ -18,19 +18,19 @@
 
 package plugins.tprovoost.scale;
 
-import org.bioimageanalysis.icy.common.color.ColorUtil;
-import org.bioimageanalysis.icy.common.geom.shape.ShapeUtil;
-import org.bioimageanalysis.icy.common.math.MathUtil;
-import org.bioimageanalysis.icy.common.math.UnitUtil;
-import org.bioimageanalysis.icy.gui.GraphicsUtil;
-import org.bioimageanalysis.icy.gui.canvas.IcyCanvas;
-import org.bioimageanalysis.icy.gui.canvas.IcyCanvas2D;
-import org.bioimageanalysis.icy.gui.canvas.VtkCanvas;
-import org.bioimageanalysis.icy.model.overlay.Overlay;
-import org.bioimageanalysis.icy.model.sequence.Sequence;
-import org.bioimageanalysis.icy.system.preferences.GeneralPreferences;
-import org.bioimageanalysis.icy.system.preferences.XMLPreferences;
-import org.bioimageanalysis.icy.system.thread.ThreadUtil;
+import fr.icy.common.color.ColorUtil;
+import fr.icy.common.geom.shape.ShapeUtil;
+import fr.icy.common.math.MathUtil;
+import fr.icy.common.math.UnitUtil;
+import fr.icy.gui.GraphicsUtil;
+import fr.icy.gui.canvas.IcyCanvas;
+import fr.icy.gui.canvas.IcyCanvas2D;
+import fr.icy.gui.canvas.VtkCanvas;
+import fr.icy.model.overlay.Overlay;
+import fr.icy.model.sequence.Sequence;
+import fr.icy.system.preferences.GeneralPreferences;
+import fr.icy.system.preferences.XMLPreferences;
+import fr.icy.system.thread.ThreadUtil;
 import org.jetbrains.annotations.NotNull;
 import plugins.adufour.vars.gui.model.IntegerRangeModel;
 import plugins.adufour.vars.gui.swing.SwingVarEditor;

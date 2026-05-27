@@ -18,18 +18,16 @@
 
 package plugins.tprovoost.scale;
 
-import org.bioimageanalysis.icy.Icy;
-import org.bioimageanalysis.icy.extension.plugin.abstract_.Plugin;
-import org.bioimageanalysis.icy.extension.plugin.annotation_.IcyPluginDescription;
-import org.bioimageanalysis.icy.extension.plugin.annotation_.IcyPluginIcon;
-import org.bioimageanalysis.icy.extension.plugin.annotation_.IcyPluginName;
-import org.bioimageanalysis.icy.extension.plugin.interface_.PluginDaemon;
-import org.bioimageanalysis.icy.gui.listener.GlobalSequenceListener;
-import org.bioimageanalysis.icy.gui.viewer.Viewer;
-import org.bioimageanalysis.icy.model.overlay.Overlay;
-import org.bioimageanalysis.icy.model.sequence.Sequence;
-import org.bioimageanalysis.icy.system.IcyHandledException;
-import org.bioimageanalysis.icy.system.preferences.XMLPreferences;
+import fr.icy.Icy;
+import fr.icy.extension.plugin.abstract_.Plugin;
+import fr.icy.extension.plugin.annotation_.IcyPluginName;
+import fr.icy.extension.plugin.interface_.PluginDaemon;
+import fr.icy.gui.listener.GlobalSequenceListener;
+import fr.icy.gui.viewer.Viewer;
+import fr.icy.model.overlay.Overlay;
+import fr.icy.model.sequence.Sequence;
+import fr.icy.system.IcyHandledException;
+import fr.icy.system.preferences.XMLPreferences;
 import org.jetbrains.annotations.Contract;
 
 /**
@@ -51,8 +49,6 @@ import org.jetbrains.annotations.Contract;
  * @author Thomas Musset
  */
 @IcyPluginName("Scale Bar")
-@IcyPluginDescription(shortDesc = "Displays a scale bar on 2D viewers, with various display adjustment options.")
-@IcyPluginIcon(path = "/plugins/tprovoost/scale/icon/Scale_icon.png")
 public class Scale extends Plugin implements PluginDaemon, GlobalSequenceListener {
     private static XMLPreferences preferences = null;
 
@@ -94,7 +90,7 @@ public class Scale extends Plugin implements PluginDaemon, GlobalSequenceListene
             throw new IcyHandledException("Cannot add the scale bar: no sequence specified");
 
         if (sequence.hasOverlay(ScaleBarOverlay.class))
-            return sequence.getOverlays(ScaleBarOverlay.class).getFirst();
+            return sequence.getOverlays(ScaleBarOverlay.class).get(0);
 
         final ScaleBarOverlay overlay = new ScaleBarOverlay(preferences);
 
