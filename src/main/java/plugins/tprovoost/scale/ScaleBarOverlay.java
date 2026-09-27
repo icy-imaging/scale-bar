@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2024. Institut Pasteur.
+ * Copyright (c) 2010-2026. Institut Pasteur.
  *
  * This file is part of Icy.
  * Icy is free software: you can redistribute it and/or modify
@@ -48,8 +48,11 @@ import java.awt.geom.Rectangle2D;
  * @author Thomas Musset
  */
 public class ScaleBarOverlay extends Overlay {
-    private static final double[] scaleRoundedFactors = {1.0D, 2.0D, 3.0D, 4.0D, 5.0D, 6.0D, 7.0D, 8.0D, 9.0D, 10.0D, 20.0D, 30.0D, 40.0D, 50.0D, 60.0D, 70.0D,
-            80.0D, 90.0D, 100.0D, 200.0D, 300.0D, 400.0D, 500.0D, 600.0D, 700.0D, 800.0D, 900.0D};
+    private static final double[] scaleRoundedFactors = {
+            1.0D, 2.0D, 3.0D, 4.0D, 5.0D, 6.0D, 7.0D, 8.0D, 9.0D,
+            10.0D, 20.0D, 30.0D, 40.0D, 50.0D, 60.0D, 70.0D, 80.0D, 90.0D,
+            100.0D, 200.0D, 300.0D, 400.0D, 500.0D, 600.0D, 700.0D, 800.0D, 900.0D
+    };
 
     //private final XMLPreferences preferences;
     private final Line2D.Double line;

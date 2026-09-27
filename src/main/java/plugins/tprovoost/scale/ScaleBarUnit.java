@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2024. Institut Pasteur.
+ * Copyright (c) 2010-2026. Institut Pasteur.
  *
  * This file is part of Icy.
  * Icy is free software: you can redistribute it and/or modify
@@ -33,8 +33,8 @@ public enum ScaleBarUnit {
             case KILO -> "km";
             case NONE -> "m";
             case MILLI -> "mm";
-            default -> UnitUtil.MICRO_STRING + "m";
             case NANO -> "nm";
+            default -> UnitUtil.MICRO_STRING + "m";
         };
     }
 
@@ -44,8 +44,8 @@ public enum ScaleBarUnit {
             case KILO -> UnitUtil.UnitPrefix.KILO;
             case NONE -> UnitUtil.UnitPrefix.NONE;
             case MILLI -> UnitUtil.UnitPrefix.MILLI;
-            default -> UnitUtil.UnitPrefix.MICRO;
             case NANO -> UnitUtil.UnitPrefix.NANO;
+            default -> UnitUtil.UnitPrefix.MICRO;
         };
     }
 
@@ -55,8 +55,8 @@ public enum ScaleBarUnit {
             case GIGA, MEGA, KILO -> KILO;
             case NONE -> NONE;
             case MILLI -> MILLI;
-            default -> MICRO;
             case NANO, PICO -> NANO;
+            default -> MICRO;
         };
     }
 }
